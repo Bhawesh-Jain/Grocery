@@ -64,7 +64,7 @@ async function createUser(req, res) {
     } else {
         res.send(JSON.stringify({
             "result": "false",
-            "msg": "Parameter Required email, password"
+            "msg": "Parameter Required userId, password"
         }));
     }
 }
