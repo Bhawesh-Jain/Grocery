@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const Task = require('../models/Task');
 const User = require('../models/User');
 
 async function login(req, res) {
@@ -75,5 +76,33 @@ async function getProfile(req, res) {
     }
 }
 
+async function getTaskList(req, res) {
+    res.status(200).header('Content-Type', 'text/json')
 
-module.exports = { login, getProfile };
+    var id = req.body.id;
+
+    if (id && id.length > 0) {
+        const task = await Task.where({ userId: id }).find();
+
+        if (task) {
+            res.json({
+                "result": "true",
+                "msg": "Task Found!",
+                data: task
+            })
+        } else {
+            res.send(JSON.stringify({
+                "result": "false",
+                "msg": "No Task Found!!"
+            }));
+        }
+    } else {
+        res.send(JSON.stringify({
+            "result": "false",
+            "msg": "Invalid Id"
+        }));
+    }
+}
+
+
+module.exports = { login, getProfile, getTaskList };
