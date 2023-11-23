@@ -1,12 +1,14 @@
 const bcrypt = require('bcrypt');
-const Task = require('../models/Task');
 const User = require('../models/User');
+const Task = require('../models/Task');
+const Attendance = require('../models/Attendance');
 
 async function login(req, res) {
     res.status(200).header('Content-Type', 'text/json')
 
     var userId = req.body.userId;
     var password = req.body.password;
+    
     if (userId && userId.length > 0 && password && password.length > 0) {
 
         const user = await User.where({ userId: userId }).findOne();
@@ -104,5 +106,67 @@ async function getTaskList(req, res) {
     }
 }
 
+async function attendanceUpdate(req, res, mode) {
+    res.status(200).header('Content-Type', 'text/json')
 
-module.exports = { login, getProfile, getTaskList };
+    var id = req.body.id;
+    var lat = req.body.lat;
+    var long = req.body.long;
+    var time = req.body.time;
+    var date = req.body.date;
+
+    if (id && id.length > 0) {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = today.getFullYear();
+        
+        var currentTime = String(today.getHours()) + ":" + String(today.getMinutes());
+
+        today = dd + '-' + mm + '-' + yyyy;
+
+        if(!lat) lat = "";
+        if(!long) long = "";
+        if(!time) time = currentTime;
+        if(!date) date = today;
+
+        var data;
+
+        console.log(time);
+
+        if (mode == 1) {
+            data = new Attendance({
+                userId: id,
+                inTime: time,
+                inLat: lat,
+                inLong: long,
+                date: date
+            });
+        } else {
+            data = new Attendance({
+                userId: id,
+                outTime: time,
+                outLat: lat,
+                outLong: long,
+                date: date
+            });
+        }
+
+        const dataToSave = await data.save();
+        res.json({
+            "result": "true",
+            "msg": "Attendance Marked",
+            data: dataToSave
+        });
+
+    } else {
+        res.send(JSON.stringify({
+            "result": "false",
+            "msg": "Invalid Id"
+        }));
+    }
+}
+
+
+
+module.exports = { login, getProfile, getTaskList, attendanceUpdate };
