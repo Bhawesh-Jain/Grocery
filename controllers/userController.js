@@ -81,7 +81,7 @@ async function getProfile(req, res) {
 async function getTaskList(req, res) {
     res.status(200).header('Content-Type', 'text/json')
 
-    var id = req.body.id;
+    var id = req.query.id;
 
     if (id && id.length > 0) {
         const task = await Task.where({ userId: id }).find();
