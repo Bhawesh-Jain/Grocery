@@ -6,7 +6,7 @@ const Attendance = require('../models/Attendance');
 async function login(req, res) {
     res.status(200).header('Content-Type', 'text/json')
 
-    var userId = req.body.userId;
+    var userId = req.body.username;
     var password = req.body.password;
     
     if (userId && userId.length > 0 && password && password.length > 0) {
