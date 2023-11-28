@@ -44,7 +44,7 @@ async function login(req, res) {
     } else {
         res.send(JSON.stringify({
             "result": "false",
-            "msg": "Parameter Required userId, password"
+            "msg": "Parameter Required username, password"
         }));
     }
 }
