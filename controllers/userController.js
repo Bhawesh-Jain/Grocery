@@ -162,7 +162,7 @@ async function attendanceUpdate(req, res, mode) {
     } else {
         res.send(JSON.stringify({
             "result": "false",
-            "msg": "Invalid Id"
+            "msg": "Invalid id"
         }));
     }
 }
