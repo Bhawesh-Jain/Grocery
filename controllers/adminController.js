@@ -5,19 +5,19 @@ const Task = require('../models/Task');
 async function createUser(req, res) {
     res.status(200).header('Content-Type', 'text/json')
 
-    var userId = req.body.userId;
+    var username = req.body.username;
     var password = req.body.password;
     var name = req.body.name;
     var phone = req.body.phone;
     var fcm_token = req.body.fcm_token;
 
-    if (userId && userId.length > 0 && password && password.length > 0) {
-        const user = await User.where({ userId: userId }).findOne();
+    if (username && username.length > 0 && password && password.length > 0) {
+        const user = await User.where({ username: username }).findOne();
 
         if (user) {
             res.send(JSON.stringify({
                 "result": "false",
-                "msg": "UserId Already Exists!"
+                "msg": "Username Already Exists!"
             }));
         } else {
             // Validate and sanitize inputs
@@ -39,7 +39,7 @@ async function createUser(req, res) {
                         } else {
                             try {
                                 const data = new User({
-                                    userId: userId,
+                                    username: username,
                                     password: hash,
                                     name: name,
                                     phone: phone,
@@ -65,7 +65,7 @@ async function createUser(req, res) {
     } else {
         res.send(JSON.stringify({
             "result": "false",
-            "msg": "Parameter Required userId, password"
+            "msg": "Parameter Required username, password"
         }));
     }
 }

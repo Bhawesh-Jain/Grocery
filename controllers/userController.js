@@ -6,12 +6,12 @@ const Attendance = require('../models/Attendance');
 async function login(req, res) {
     res.status(200).header('Content-Type', 'text/json')
 
-    var userId = req.body.username;
+    var username = req.body.username;
     var password = req.body.password;
     
-    if (userId && userId.length > 0 && password && password.length > 0) {
+    if (username && username.length > 0 && password && password.length > 0) {
 
-        const user = await User.where({ userId: userId }).findOne();
+        const user = await User.where({ username: username }).findOne();
 
         if (user) {
             bcrypt.compare(password, user.password, (err, result) => {
@@ -86,7 +86,7 @@ async function getTaskList(req, res) {
     if (id && id.length > 0) {
         const task = await Task.where({ userId: id }).find();
 
-        if (task) {
+        if (task.length > 0) {
             res.json({
                 "result": "true",
                 "msg": "Task Found!",
@@ -132,7 +132,6 @@ async function attendanceUpdate(req, res, mode) {
 
         var data;
 
-        console.log(time);
 
         if (mode == 1) {
             data = new Attendance({
