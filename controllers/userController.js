@@ -26,7 +26,7 @@ async function verifyPhone(req, res) {
                 if (!location) location = user.location
                 if (!source) source = user.source
 
-                data = await MobileVerifyModel.findByIdAndUpdate(
+                var item = await MobileVerifyModel.findByIdAndUpdate(
                     { _id: user._id },
                     {
                         otp: otp,
