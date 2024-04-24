@@ -4,6 +4,8 @@ const UserModel = require("../models/UserModel");
 const LoginRestrictions = require("../models/LoginRestrictions");
 const axios = require('axios');
 const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 async function getAddressFromCoordinates(latitude, longitude) {
     try {
         const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
@@ -154,75 +156,62 @@ async function verifyOtp(req, res) {
 }
 
 async function signup(req, res) {
-    res.status(200).header('Content-Type', 'text/json')
+    res.status(200).header('Content-Type', 'application/json');
 
-    var phone = req.body.phone
-    var username = req.body.username
-    var email = req.body.email
-    var password = req.body.password
+    const phone = req.body.phone;
+    const username = req.body.username;
+    const email = req.body.email;
+    const password = req.body.password;
 
-    var result
-    var msg
-    var data
+    let result = false;
+    let msg = '';
+    let data = null;
+    const errors = [];
 
-    var err = []
-
-    if (!phone || phone.length != 10) {
-        err.push("Invalid Phone Number")
+    if (!phone || phone.length !== 10) {
+        errors.push("Invalid Phone Number");
     }
-    if (!username || username.length == 0) {
-        err.push("Enter User Name")
+    if (!username || username.length === 0) {
+        errors.push("Enter User Name");
     }
-    if (!email || email.length == 0) {
-        err.push("Enter Email")
+    if (!email || email.length === 0) {
+        errors.push("Enter Email");
     }
-    if (!password || password.length == 0) {
-        err.push("Enter Password")
+    if (!password || password.length === 0) {
+        errors.push("Enter Password");
     }
 
-    if (err.length == 0) {
+    if (errors.length === 0) {
         try {
-            const user = await UserModel.where({ phone: phone }).findOne();
-
-            if (user) {
-                result = false
-                msg = "Phone already exists!"
+            const userExists = await UserModel.exists({ $or: [{ phone: phone },{ email: email}]});
+            if (userExists) {
+                msg = "Phone/Email already exists!";
             } else {
-                item = new UserModel({
+                const salt = await bcrypt.genSalt(saltRounds);
+                const hash = await bcrypt.hash(password, salt);
+                const newUser = new UserModel({
                     phone: phone,
                     username: username,
                     email: email,
-                    password: password
-                })
-
-
-                data = await item.save()
-
-                result = true
-                msg = "Signup Successful!"
+                    password: hash
+                });
+                data = await newUser.save();
+                result = true;
+                msg = "Signup Successful!";
             }
         } catch (error) {
-            res.status(400)
-            result = false
-            msg = "Server Error"
-            handleError(error)
+            res.status(500);
+            handleError(error);
+            msg = "Server Error";
+            return res.json({ result: result, msg: msg });
         }
     } else {
-        result = false
-        msg = err.join(", ")
+        msg = errors.join(", ");
     }
 
-    if (data)
-        res.json({
-            "result": result,
-            "msg": msg,
-            "data": data
-        })
-    else res.json({
-        "result": result,
-        "msg": msg
-    })
+    res.json({ result: result, msg: msg, data: data });
 }
+
 
 async function getLoginMethods(req, res) {
     res.status(200).header('Content-Type', 'text/json')
@@ -288,7 +277,6 @@ async function getLoginMethods(req, res) {
     })
 }
 
-
 async function login(req, res) {
     res.status(200).header('Content-Type', 'application/json');
 
@@ -312,7 +300,7 @@ async function login(req, res) {
     if (errors.length === 0) {
         try {
             var user = await UserModel.findOne({ email: email });
-
+            console.log(user);
             if (user) {
                 const match = await bcrypt.compare(password, user.password);
                 if (match) {
