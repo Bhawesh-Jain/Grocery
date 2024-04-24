@@ -230,7 +230,6 @@ async function getLoginMethods(req, res) {
                 await getAddressFromCoordinates(latitude, longitude)
                     .then(address => {
                         location = address.country
-                        console.log(location);
                     })
                     .catch(error => {
                         handleError(error)
@@ -300,7 +299,6 @@ async function login(req, res) {
     if (errors.length === 0) {
         try {
             var user = await UserModel.findOne({ email: email });
-            console.log(user);
             if (user) {
                 const match = await bcrypt.compare(password, user.password);
                 if (match) {
