@@ -1,5 +1,22 @@
+require('dotenv').config();
 const MobileVerifyModel = require("../models/MobileVerifyModel");
 const UserModel = require("../models/UserModel");
+const LoginRestrictions = require("../models/LoginRestrictions");
+const axios = require('axios');
+
+async function getAddressFromCoordinates(latitude, longitude) {
+    try {
+        const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+        const address = response.data.address;
+        const city = address.city || address.village || address.town || address.hamlet || '';
+        const state = address.state || address.county || '';
+        const country = address.country || '';
+        return { city, state, country };
+    } catch (error) {
+        console.error('Error fetching address:', error);
+        return null;
+    }
+}
 
 function handleError(error) {
     console.log(error);
@@ -172,13 +189,13 @@ async function signup(req, res) {
                 msg = "Phone already exists!"
             } else {
                 item = new UserModel({
-                    phone:phone,
-                    username:username,
-                    email:email,
-                    password:password
+                    phone: phone,
+                    username: username,
+                    email: email,
+                    password: password
                 })
 
-                
+
                 data = await item.save()
 
                 result = true
@@ -207,4 +224,69 @@ async function signup(req, res) {
     })
 }
 
-module.exports = { verifyPhone, verifyOtp, signup }
+async function getLoginMethods(req, res) {
+    res.status(200).header('Content-Type', 'text/json')
+
+    var latitude = req.body.latitude
+    var longitude = req.body.longitude
+
+    var result
+    var msg
+    var data
+
+    try {
+        var location = null
+        if ((latitude && latitude.length > 0) && (longitude && longitude.length > 0)) {
+            try {
+                await getAddressFromCoordinates(latitude, longitude)
+                .then(address => {
+                    location = address.country
+                    console.log(location);
+                })
+                .catch(error => {
+                    handleError(error)
+                });
+            } catch (error) {
+                handleError(error)
+            }
+        }
+
+        if (!location || location.length == 0) {
+            location = "default"
+        }
+
+        // const restrictions = await LoginRestrictions.where({ location: location }).findOne();
+        const restrictions = await LoginRestrictions.findOne({ location: { $in: [location, "default"] } });
+
+
+        if(restrictions) {
+            result = true
+            msg = "Request successful!"
+            data = restrictions
+        } else {
+            res.status(400)
+            result = false
+            msg = "Invalid Attempt"
+        }
+
+
+    } catch (error) {
+        res.status(400)
+        result = false
+        msg = "Server Error"
+        handleError(error)
+    }
+
+    if (data)
+        res.json({
+            "result": result,
+            "msg": msg,
+            "data": data
+        })
+    else res.json({
+        "result": result,
+        "msg": msg
+    })
+}
+
+module.exports = { verifyPhone, verifyOtp, signup, getLoginMethods }
