@@ -3,7 +3,7 @@ const MobileVerifyModel = require("../models/MobileVerifyModel");
 const UserModel = require("../models/UserModel");
 const LoginRestrictions = require("../models/LoginRestrictions");
 const axios = require('axios');
-
+const bcrypt = require('bcrypt');
 async function getAddressFromCoordinates(latitude, longitude) {
     try {
         const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
@@ -239,13 +239,13 @@ async function getLoginMethods(req, res) {
         if ((latitude && latitude.length > 0) && (longitude && longitude.length > 0)) {
             try {
                 await getAddressFromCoordinates(latitude, longitude)
-                .then(address => {
-                    location = address.country
-                    console.log(location);
-                })
-                .catch(error => {
-                    handleError(error)
-                });
+                    .then(address => {
+                        location = address.country
+                        console.log(location);
+                    })
+                    .catch(error => {
+                        handleError(error)
+                    });
             } catch (error) {
                 handleError(error)
             }
@@ -255,11 +255,10 @@ async function getLoginMethods(req, res) {
             location = "default"
         }
 
-        // const restrictions = await LoginRestrictions.where({ location: location }).findOne();
         const restrictions = await LoginRestrictions.findOne({ location: { $in: [location, "default"] } });
 
 
-        if(restrictions) {
+        if (restrictions) {
             result = true
             msg = "Request successful!"
             data = restrictions
@@ -289,4 +288,72 @@ async function getLoginMethods(req, res) {
     })
 }
 
-module.exports = { verifyPhone, verifyOtp, signup, getLoginMethods }
+
+async function login(req, res) {
+    res.status(200).header('Content-Type', 'application/json');
+
+    const email = req.body.email;
+    const password = req.body.password;
+    const latitude = req.body.latitude;
+    const longitude = req.body.longitude;
+
+    let result = false;
+    let msg = '';
+    let data = null;
+    const errors = [];
+
+    if (!email || email.length === 0) {
+        errors.push("Enter Email");
+    }
+    if (!password || password.length === 0) {
+        errors.push("Enter Password");
+    }
+
+    if (errors.length === 0) {
+        try {
+            var user = await UserModel.findOne({ email: email });
+
+            if (user) {
+                const match = await bcrypt.compare(password, user.password);
+                if (match) {
+                    if ((latitude && latitude.length > 0) && (longitude && longitude.length > 0)) {
+                        const id = user._id;
+
+                        user = await UserModel.findByIdAndUpdate(
+                            { _id: id },
+                            {
+                                latitude: latitude,
+                                longitude: longitude
+                            },
+                            { new: true }
+                        );
+
+
+                    }
+
+                    const sanitizedUser = { ...user.toObject(), password: undefined };
+
+                    result = true;
+                    msg = "Login Successful!";
+                    data = sanitizedUser;
+
+                } else {
+                    msg = "Incorrect Password!";
+                }
+            } else {
+                msg = "Username not found!";
+            }
+        } catch (error) {
+            res.status(500);
+            msg = "Server Error";
+            handleError(error);
+            return res.json({ result: result, msg: msg });
+        }
+    } else {
+        msg = errors.join(", ");
+    }
+
+    res.json({ result: result, msg: msg, data: data });
+}
+
+module.exports = { verifyPhone, verifyOtp, signup, getLoginMethods, login }

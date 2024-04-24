@@ -14,6 +14,12 @@ const dataSchema = mongoose.Schema({
     email: {
         type: String
     },
+    latitude: {
+        type: String
+    },
+    longitude: {
+        type: String
+    },
 }, { timestamps: true})
 
 module.exports = mongoose.model('User', dataSchema)
