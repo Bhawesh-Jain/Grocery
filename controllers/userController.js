@@ -2,6 +2,7 @@ require('dotenv').config();
 const MobileVerifyModel = require("../models/MobileVerifyModel");
 const UserModel = require("../models/UserModel");
 const LoginRestrictions = require("../models/LoginRestrictions");
+const BannerModel = require("../models/BannerModel");
 const axios = require('axios');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -183,7 +184,7 @@ async function signup(req, res) {
 
     if (errors.length === 0) {
         try {
-            const userExists = await UserModel.exists({ $or: [{ phone: phone },{ email: email}]});
+            const userExists = await UserModel.exists({ $or: [{ phone: phone }, { email: email }] });
             if (userExists) {
                 msg = "Phone/Email already exists!";
             } else {
@@ -211,7 +212,6 @@ async function signup(req, res) {
 
     res.json({ result: result, msg: msg, data: data });
 }
-
 
 async function getLoginMethods(req, res) {
     res.status(200).header('Content-Type', 'text/json')
@@ -342,4 +342,46 @@ async function login(req, res) {
     res.json({ result: result, msg: msg, data: data });
 }
 
-module.exports = { verifyPhone, verifyOtp, signup, getLoginMethods, login }
+async function getBannerList(req, res) {
+    res.status(200).header('Content-Type', 'application/json');
+
+    const userId = req.body.userId;
+
+    let result = false;
+    let msg = '';
+    let data = null;
+    const errors = [];
+
+    if (!userId || userId.userId === 0) {
+        errors.push("Enter user id");
+    }
+    
+    if (errors.length === 0) {
+        try {
+            var user = await UserModel.findOne({ _id: userId });
+            if (user) {
+
+                var banners = await BannerModel.find({isActive: true});
+
+                data = banners;
+                result = true;
+                msg = "Request Successful!";
+
+            } else {
+                msg = "User not found!";
+            }
+        } catch (error) {
+            res.status(500);
+            msg = "Server Error";
+            handleError(error);
+            return res.json({ result: result, msg: msg });
+        }
+    } else {
+        msg = errors.join(", ");
+    }
+
+    res.json({ result: result, msg: msg, data: data });
+}
+
+
+module.exports = { verifyPhone, verifyOtp, signup, getLoginMethods, login, getBannerList }

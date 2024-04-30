@@ -15,4 +15,4 @@ const dataSchema = mongoose.Schema({
     }
 }, { timestamps: true })
 
-module.exports = mongoose.model('loginRestrictions', dataSchema)
+module.exports = mongoose.model('LoginRestrictions', dataSchema)

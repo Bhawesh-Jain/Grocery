@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
-const { verifyPhone, verifyOtp, signup, getLoginMethods, login } = require('../controllers/userController')
+const { verifyPhone, verifyOtp, signup, getLoginMethods, login, getBannerList } = require('../controllers/userController')
 
 const app = express();
 
@@ -14,6 +14,7 @@ router.post("/verifyOtp", (req, res) => verifyOtp(req, res));
 router.post("/signup", (req, res) => signup(req, res)); 
 router.post("/getLoginMethods", (req, res) => getLoginMethods(req, res)); 
 router.post("/login", (req, res) => login(req, res)); 
+router.post("/getBannerList", (req, res) => getBannerList(req, res)); 
 
 router.get("*", (req, res) => res.send("PAGE NOT FOUND")); 
 
