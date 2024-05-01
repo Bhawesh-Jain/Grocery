@@ -355,13 +355,13 @@ async function getBannerList(req, res) {
     if (!userId || userId.userId === 0) {
         errors.push("Enter user id");
     }
-    
+
     if (errors.length === 0) {
         try {
             var user = await UserModel.findOne({ _id: userId });
             if (user) {
 
-                var banners = await BannerModel.find({isActive: true});
+                var banners = await BannerModel.find({ isActive: true });
 
                 data = banners;
                 result = true;
@@ -383,5 +383,128 @@ async function getBannerList(req, res) {
     res.json({ result: result, msg: msg, data: data });
 }
 
+async function getDashboardData(req, res) {
+    res.status(200).header('Content-Type', 'application/json');
 
-module.exports = { verifyPhone, verifyOtp, signup, getLoginMethods, login, getBannerList }
+    const userId = req.body.userId;
+    const latitude = req.body.latitude;
+    const longitude = req.body.longitude;
+
+    let result = false;
+    let msg = '';
+    let data = null;
+    const errors = [];
+
+    if (!userId || userId.userId === 0) {
+        errors.push("Enter user id");
+    }
+
+    if (errors.length === 0) {
+        try {
+            productDummyData = [
+                {
+                    title: "Exclusive Offer",
+                    cat_id: "1",
+                    count: 3,
+                    productList: [
+                        {
+                            _id: "1", 
+                            image: "https://www.shutterstock.com/image-photo/banana-cluster-isolated-600nw-575528746.jpg",
+                            name: "Organic Bananas",
+                            quantity: "6pcs Price",
+                            price: "4.99"
+                        },
+                        {
+                            _id: "2", 
+                            image: "https://www.shutterstock.com/image-photo/banana-cluster-isolated-600nw-575528746.jpg",
+                            name: "Kashmiri Apple",
+                            quantity: "1kg Price",
+                            price: "2.99"
+                        },
+                        {
+                            _id: "3", 
+                            image: "https://www.shutterstock.com/image-photo/banana-cluster-isolated-600nw-575528746.jpg",
+                            name: "Peach",
+                            quantity: "500g Price",
+                            price: "6.65"
+                        },
+                    ]
+                },
+                {
+                    title: "Best Selling",
+                    cat_id: "2",
+                    count: 3,
+                    productList: [
+                        {
+                            _id: "4", 
+                            image: "https://www.shutterstock.com/image-photo/banana-cluster-isolated-600nw-575528746.jpg",
+                            name: "Bell Pepper Red",
+                            quantity: "6pcs Price",
+                            price: "4.99"
+                        },
+                        {
+                            _id: "5", 
+                            image: "https://www.shutterstock.com/image-photo/banana-cluster-isolated-600nw-575528746.jpg",
+                            name: "Ginger",
+                            quantity: "250grams Price",
+                            price: "2.99"
+                        },
+                        {
+                            _id: "6", 
+                            image: "https://www.shutterstock.com/image-photo/banana-cluster-isolated-600nw-575528746.jpg",
+                            name: "Bell Pepper Red",
+                            quantity: "500g Price",
+                            price: "6.65"
+                        },
+                    ]
+                },
+                {
+                    title: "Groceries",
+                    cat_id: "2",
+                    count: 3,
+                    productList: [
+                        {
+                            _id: "1", 
+                            image: "https://www.shutterstock.com/image-photo/banana-cluster-isolated-600nw-575528746.jpg",
+                            name: "Organic Bananas",
+                            quantity: "6pcs Price",
+                            price: "4.99"
+                        },
+                        {
+                            _id: "2", 
+                            image: "https://www.shutterstock.com/image-photo/banana-cluster-isolated-600nw-575528746.jpg",
+                            name: "Kashmiri Apple",
+                            quantity: "1kg Price",
+                            price: "2.99"
+                        },
+                        {
+                            _id: "3", 
+                            image: "https://www.shutterstock.com/image-photo/banana-cluster-isolated-600nw-575528746.jpg",
+                            name: "Peach",
+                            quantity: "500g Price",
+                            price: "6.65"
+                        },
+                    ]
+                },
+            ]
+
+
+            data = productDummyData;
+            result = true;
+            msg = "Request Successful!";
+
+        } catch (error) {
+            res.status(500);
+            msg = "Server Error";
+            handleError(error);
+            return res.json({ result: result, msg: msg });
+        }
+    } else {
+        msg = errors.join(", ");
+    }
+
+    res.json({ result: result, msg: msg, data: data });
+}
+
+
+module.exports = { getDashboardData, verifyPhone, verifyOtp, signup, getLoginMethods, login, getBannerList }
